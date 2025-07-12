@@ -85,7 +85,7 @@ Send messages to chat with others in real-time
 Mention @monk followed by your coding question for AI assistance
 Example: @monk how do I reverse an array in JavaScript?
 
-##Screenshots
+##Screenshots##
 <img width="1918" height="889" alt="Screenshot 2025-07-13 003945" src="https://github.com/user-attachments/assets/9dedfec1-63e6-4126-850a-21c40b219f3a" />
 <img width="1919" height="876" alt="Screenshot 2025-07-13 004020" src="https://github.com/user-attachments/assets/211abbd9-8e85-4151-860c-8c5be8de2112" />
 <img width="1897" height="873" alt="Screenshot 2025-07-13 004142" src="https://github.com/user-attachments/assets/2a48a960-c2aa-4fa9-a897-67a4234cb40b" />

@@ -85,6 +85,16 @@ Send messages to chat with others in real-time
 Mention @monk followed by your coding question for AI assistance
 Example: @monk how do I reverse an array in JavaScript?
 
+##Screenshots
+<img width="1918" height="889" alt="Screenshot 2025-07-13 003945" src="https://github.com/user-attachments/assets/9dedfec1-63e6-4126-850a-21c40b219f3a" />
+<img width="1919" height="876" alt="Screenshot 2025-07-13 004020" src="https://github.com/user-attachments/assets/211abbd9-8e85-4151-860c-8c5be8de2112" />
+<img width="1897" height="873" alt="Screenshot 2025-07-13 004142" src="https://github.com/user-attachments/assets/2a48a960-c2aa-4fa9-a897-67a4234cb40b" />
+<img width="1916" height="894" alt="Screenshot 2025-07-13 004205" src="https://github.com/user-attachments/assets/e402f1b6-d4fa-4d99-85f9-5e5f1eaf91ae" />
+<img width="1909" height="875" alt="Screenshot 2025-07-13 003931" src="https://github.com/user-attachments/assets/76ecec22-4e6a-4c25-9452-5953994999e0" />
+
+
+
+
 🎨 UI Features
 Beautiful Login Screen
 

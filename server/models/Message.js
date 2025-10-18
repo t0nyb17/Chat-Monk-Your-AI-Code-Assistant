@@ -1,9 +1,26 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  message:  { type: String, required: true },
-  timestamp:{ type: Date, default: Date.now }
+  username: {
+    type: String,
+    required: true
+  },
+  message: {
+    type: String,
+    required: true
+  },
+  roomId: {
+    type: String,
+    default: 'general'
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now
+  },
+  isAI: {
+    type: Boolean,
+    default: false
+  }
 });
 
-module.exports = mongoose.model('Message', messageSchema);
+export default mongoose.model('Message', messageSchema);

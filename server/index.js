@@ -1,51 +1,110 @@
-require('dotenv').config();
-const express = require('express');
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const aiHandler = require('./aiHandler');
-const Message = require('./models/Message');
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { handleAIRequest } from './aiHandler.js';
+import Message from './models/Message.js';
+
+// Get the directory name of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from parent directory (root chatmonk folder)
+dotenv.config({ path: path.join(__dirname, '../.env') });
+
+// Debug: Check if environment variables are loaded
+console.log('Environment loaded:', {
+  PORT: process.env.PORT,
+  API_KEY_EXISTS: !!process.env.OPENAI_API_KEY,
+  CLIENT_URL: process.env.CLIENT_URL
+});
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
+const server = createServer(app);
+const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST']
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    methods: ["GET", "POST"]
   }
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error(err));
+app.use(cors());
+app.use(express.json());
 
-// Socket.IO logic
-io.on('connection', socket => {
+// MongoDB connection (optional)
+if (process.env.MONGODB_URI) {
+  mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.log('MongoDB connection error:', err));
+}
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  // Load last 50 messages on join
-  Message.find().sort({ timestamp: -1 }).limit(50).exec((err, msgs) => {
-    if (!err) socket.emit('receive_message', msgs.reverse());
+  socket.on('join_room', (roomId) => {
+    socket.join(roomId);
+    console.log(`User ${socket.id} joined room ${roomId}`);
   });
 
-  // Handle incoming messages
-  socket.on('send_message', async ({ username, message }) => {
-    const msgDoc = await Message.create({ username, message });
-    io.emit('receive_message', msgDoc);
+  socket.on('send_message', async (data) => {
+    const { username, message, roomId } = data;
+    const timestamp = new Date();
 
-    // AI trigger
-    if (message.includes('@monk')) {
-      const reply = await aiHandler(message);
-      const botDoc = await Message.create({ username: 'Monk (AI)', message: reply });
-      io.emit('ai_reply', botDoc);
+    // Emit message to all users in the room
+    io.to(roomId).emit('receive_message', {
+      id: Date.now(),
+      username,
+      message,
+      timestamp,
+      isAI: false
+    });
+
+    // Save message to MongoDB if connected
+    if (mongoose.connection.readyState === 1) {
+      try {
+        await Message.create({
+          username,
+          message,
+          roomId,
+          timestamp
+        });
+      } catch (err) {
+        console.error('Error saving message:', err);
+      }
+    }
+
+    // Check if @monk is mentioned
+    if (message.toLowerCase().includes('@monk')) {
+      const aiResponse = await handleAIRequest(message);
+      
+      // Emit AI response
+      io.to(roomId).emit('receive_message', {
+        id: Date.now() + 1,
+        username: 'ChatMonk 🤖',
+        message: aiResponse,
+        timestamp: new Date(),
+        isAI: true
+      });
+
+      // Save AI response to MongoDB
+      if (mongoose.connection.readyState === 1) {
+        try {
+          await Message.create({
+            username: 'ChatMonk',
+            message: aiResponse,
+            roomId,
+            timestamp: new Date(),
+            isAI: true
+          });
+        } catch (err) {
+          console.error('Error saving AI response:', err);
+        }
+      }
     }
   });
 
@@ -54,8 +113,7 @@ io.on('connection', socket => {
   });
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
